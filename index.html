@@ -4,12 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>App of the Apostles</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#ffffff" />
   <style>
     body { font-family: Arial, sans-serif; background: #f2f2f2; text-align: center; padding: 2rem; }
     #game { max-width: 700px; margin: auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     button { margin: 0.5rem; padding: 0.5rem 1rem; }
     .hidden { display: none; }
     #inventory { margin-top: 1rem; font-weight: bold; }
+    audio { margin-top: 1rem; width: 100%; }
   </style>
 </head>
 <body>
@@ -25,11 +28,35 @@
       <button onclick="checkInventory()">Check Progress</button>
     </div>
     <p id="inventory" class="hidden"></p>
+    <audio id="narration" controls class="hidden"></audio>
   </div>
 
   <script>
     let progress = JSON.parse(localStorage.getItem('apostleProgress')) || [];
     let alerts = JSON.parse(localStorage.getItem('apostleAlerts')) || [];
+
+    const verseMap = {
+      'Jerusalem': {
+        verse: "Acts 2:41 - Those who accepted his message were baptized, and about three thousand were added to their number that day.",
+        audio: "https://www.sample-videos.com/audio/mp3/crowd-cheering.mp3"
+      },
+      'Antioch': {
+        verse: "Acts 11:26 - The disciples were called Christians first at Antioch.",
+        audio: "https://www.sample-videos.com/audio/mp3/wave.mp3"
+      },
+      'Ephesus': {
+        verse: "Acts 19:20 - In this way the word of the Lord spread widely and grew in power.",
+        audio: "https://www.sample-videos.com/audio/mp3/rock.mp3"
+      },
+      'Corinth': {
+        verse: "Acts 18:9 - Do not be afraid; keep on speaking, do not be silent.",
+        audio: "https://www.sample-videos.com/audio/mp3/country.mp3"
+      },
+      'Rome': {
+        verse: "Acts 28:31 - He proclaimed the kingdom of God and taught about the Lord Jesus Christ—with all boldness and without hindrance!",
+        audio: "https://www.sample-videos.com/audio/mp3/jazz.mp3"
+      }
+    };
 
     function saveGame() {
       localStorage.setItem('apostleProgress', JSON.stringify(progress));
@@ -57,7 +84,6 @@
             storyText = "In Rome, under house arrest, you continue preaching the gospel unhindered.";
             break;
         }
-        // Random chance of persecution event
         if (Math.random() < 0.3) {
           const persecution = `⚠️ Roman authorities are alerted in ${city}. Be cautious!`;
           alerts.push(persecution);
@@ -68,6 +94,18 @@
       }
 
       document.getElementById('story').innerText = storyText;
+
+      if (verseMap[city]) {
+        const verse = verseMap[city].verse;
+        const audioUrl = verseMap[city].audio;
+        document.getElementById('story').innerText += "\n\n📖 " + verse;
+
+        const audio = document.getElementById('narration');
+        audio.src = audioUrl;
+        audio.classList.remove('hidden');
+        audio.play();
+      }
+
       saveGame();
     }
 
@@ -82,6 +120,12 @@
     window.onload = () => {
       if (progress.length > 0) {
         document.getElementById('story').innerText = `You are continuing your mission. Churches planted in: ${progress.join(', ')}`;
+      }
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js').then(() => {
+          console.log("PWA Service Worker registered");
+        });
       }
     };
   </script>
