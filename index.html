@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App of the Apostles</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f2f2f2; text-align: center; padding: 2rem; }
+    #game { max-width: 700px; margin: auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    button { margin: 0.5rem; padding: 0.5rem 1rem; }
+    .hidden { display: none; }
+    #inventory { margin-top: 1rem; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <h1>App of the Apostles</h1>
+    <p id="story">You are an apostle of Christ in Jerusalem. Your mission is to spread the gospel and plant churches across the known world while evading Roman authorities and persecution.</p>
+    <div id="choices">
+      <button onclick="travelToCity('Jerusalem')">Start in Jerusalem</button>
+      <button onclick="travelToCity('Antioch')">Go to Antioch</button>
+      <button onclick="travelToCity('Ephesus')">Go to Ephesus</button>
+      <button onclick="travelToCity('Corinth')">Go to Corinth</button>
+      <button onclick="travelToCity('Rome')">Go to Rome</button>
+      <button onclick="checkInventory()">Check Progress</button>
+    </div>
+    <p id="inventory" class="hidden"></p>
+  </div>
+
+  <script>
+    let progress = JSON.parse(localStorage.getItem('apostleProgress')) || [];
+    let alerts = JSON.parse(localStorage.getItem('apostleAlerts')) || [];
+
+    function saveGame() {
+      localStorage.setItem('apostleProgress', JSON.stringify(progress));
+      localStorage.setItem('apostleAlerts', JSON.stringify(alerts));
+    }
+
+    function travelToCity(city) {
+      let storyText = '';
+      if (!progress.includes(city)) {
+        progress.push(city);
+        switch(city) {
+          case 'Jerusalem':
+            storyText = "In Jerusalem, you preach boldly at Pentecost and convert many.";
+            break;
+          case 'Antioch':
+            storyText = "In Antioch, believers are first called Christians. A church is planted.";
+            break;
+          case 'Ephesus':
+            storyText = "In Ephesus, you teach daily and perform miracles. A large following grows.";
+            break;
+          case 'Corinth':
+            storyText = "In Corinth, you face opposition but establish a strong church community.";
+            break;
+          case 'Rome':
+            storyText = "In Rome, under house arrest, you continue preaching the gospel unhindered.";
+            break;
+        }
+        // Random chance of persecution event
+        if (Math.random() < 0.3) {
+          const persecution = `⚠️ Roman authorities are alerted in ${city}. Be cautious!`;
+          alerts.push(persecution);
+          storyText += "\n\n" + persecution;
+        }
+      } else {
+        storyText = `You've already ministered in ${city}.`;
+      }
+
+      document.getElementById('story').innerText = storyText;
+      saveGame();
+    }
+
+    function checkInventory() {
+      const status = progress.length ? 'Churches planted in: ' + progress.join(', ') : 'No churches planted yet.';
+      const warning = alerts.length ? '\n\nAlerts: ' + alerts.join('\n') : '';
+      const display = document.getElementById('inventory');
+      display.innerText = status + warning;
+      display.classList.remove('hidden');
+    }
+
+    window.onload = () => {
+      if (progress.length > 0) {
+        document.getElementById('story').innerText = `You are continuing your mission. Churches planted in: ${progress.join(', ')}`;
+      }
+    };
+  </script>
+</body>
+</html>
